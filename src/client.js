@@ -41,7 +41,7 @@ app.get('/', (req, res) => {
         redirect_uri: REDIRECT_URI,
         scope: "zk-firma-digital",
         state: String(Math.floor(Math.random() * 10000)), // Convertir a string para evitar regeneración
-        nullifier_seed: voteScope
+        nullifier_seed: 1000
     });
     res.send(`
         <h1>Autentíquese con su Firma Digital</h1>

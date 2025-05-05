@@ -6,5 +6,9 @@
   "repository": "https://github.com/sakundi/zikuani-boilerplate",
   "author": "Andres Gomez <andres.gomez@sakundi.io>",
   "license": "Apache-2.0",
-  "private": false
+  "private": false,
+  "dependencies": {
+    "axios": "^1.9.0",
+    "express": "^5.1.0"
+  }
 }
