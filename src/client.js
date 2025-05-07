@@ -37,10 +37,10 @@ app.get('/', (req, res) => {
     const authUrl = `${AUTH_SERVER_URL}/authorize?` + querystring.stringify({
         grant_type: "code",
         client_id: CLIENT_ID,
+        client_secret: CLIENT_SECRET,
         user_id: ACCOUNT,
         redirect_uri: REDIRECT_URI,
-        scope: "zk-firma-digital",
-        state: String(Math.floor(Math.random() * 10000)), // Convertir a string para evitar regeneración
+        scope: "zk-firma-digital",        state: String(Math.floor(Math.random() * 10000)), // Convertir a string para evitar regeneración
         nullifier_seed: 1000
     });
     res.send(`
@@ -71,15 +71,30 @@ app.get('/callback', async (req, res) => {
             }
         });
 
-        const { access_token, token_type, expires_in } = response.data;
+        const { access_token, token_type, expires_in, verifiable_credential } = response.data;
 
         // Display the access token
         res.send(`
-            <h1>Token de acceso recibido!</h1>
-            <p>Token: ${JSON.stringify(parseJwt(access_token))}</p>
-            <p>Tipo de Token: ${token_type}</p>
-            <p>Expira en: ${expires_in} minutos</p>
-        `);
+            <html>
+              <head>
+                <title>Token Recibido</title>
+                <style>
+                  body { font-family: sans-serif; padding: 2em; line-height: 1.5; }
+                  h1 { color: #2c3e50; }
+                  pre { background: #f4f4f4; padding: 1em; border-radius: 4px; overflow-x: auto; }
+                </style>
+              </head>
+              <body>
+                <h1>¡Token de acceso recibido!</h1>
+                <p><strong>Tipo de Token:</strong> ${token_type}</p>
+                <p><strong>Expira en:</strong> ${expires_in} minutos</p>
+                <p><strong>Token:</strong></p>
+                <pre>${JSON.stringify(parseJwt(access_token), null, 2)}</pre>
+                <p><strong>Credencial verificable con prueba ZK:</strong></p>
+                <pre>${JSON.stringify(verifiable_credential, null, 2)}</pre>
+              </body>
+            </html>
+          `);
 
         // Use the access token for authenticated requests here if needed
 
