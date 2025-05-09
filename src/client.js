@@ -9,7 +9,7 @@ const CLIENT_ID = process.env.REACT_APP_CLIENT_ID || "hello@example.com";
 const CLIENT_SECRET = process.env.REACT_APP_CLIENT_SECRET || "password";
 const REDIRECT_URI = process.env.REACT_APP_REDIRECT_URI || "http://localhost:3000/callback";
 const AUTH_SERVER_URL = process.env.REACT_APP_AUTH_SERVER_URL || "https://app.sakundi.io";
-const ACCOUNT = process.env.ACCOUNT || "0x86E67a05324A55AF6B2b3bF1A5cBA1778C56A8bE";
+const ACCOUNT = process.env.ACCOUNT || "0xAAAAAAAAAAAAAAAAAAAAAAAAAA";
 
 function parseJwt(token) {
     try {
@@ -32,12 +32,11 @@ function parseJwt(token) {
     }
 }
 
-app.get('/', (req, res) => {
+app.get('/get-auth-url', (req, res) => {
     // Step 1: Redirect user to the OAuth server for authorization
     const authUrl = `${AUTH_SERVER_URL}/authorize?` + querystring.stringify({
         grant_type: "code",
         client_id: CLIENT_ID,
-        client_secret: CLIENT_SECRET,
         user_id: ACCOUNT,
         redirect_uri: REDIRECT_URI,
         scope: "zk-firma-digital",        state: String(Math.floor(Math.random() * 10000)), // Convertir a string para evitar regeneración
