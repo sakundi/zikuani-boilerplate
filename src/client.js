@@ -32,7 +32,7 @@ function parseJwt(token) {
     }
 }
 
-app.get('/get-auth-url', (req, res) => {
+app.get('/login', (req, res) => {
     // Step 1: Redirect user to the OAuth server for authorization
     const authUrl = `${AUTH_SERVER_URL}/authorize?` + querystring.stringify({
         grant_type: "code",
@@ -43,7 +43,7 @@ app.get('/get-auth-url', (req, res) => {
         nullifier_seed: 1000
     });
     res.send(`
-        <h1>Autentíquese con su Firma Digital</h1>
+        <h1>Autentíquese usando su Wallet Zikuani</h1>
         <p><a href="${authUrl}">Haga click en el enlance para comenzar el proceso de autenticación</a></p>
     `);
 });
@@ -120,5 +120,5 @@ app.get('/callback', async (req, res) => {
 // Start the client server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`OAuth client running on http://localhost:${PORT}`);
+    console.log(`Zikuani wallet client running on http://localhost:${PORT}/login`);
 });
