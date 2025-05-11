@@ -9,7 +9,7 @@ const CLIENT_ID = process.env.REACT_APP_CLIENT_ID || "hello@example.com";
 const CLIENT_SECRET = process.env.REACT_APP_CLIENT_SECRET || "password";
 const REDIRECT_URI = process.env.REACT_APP_REDIRECT_URI || "http://localhost:3000/callback";
 const AUTH_SERVER_URL = process.env.REACT_APP_AUTH_SERVER_URL || "https://app.sakundi.io";
-const ACCOUNT = process.env.ACCOUNT || "0xAAAAAAAAAAAAAAAAAAAAAAAAAA";
+const ACCOUNT = process.env.ACCOUNT || "user@usermail.com";
 
 function parseJwt(token) {
     try {
@@ -75,15 +75,15 @@ app.get('/callback', async (req, res) => {
         // Display the access token
         res.send(`
             <html>
-              <head>
+            <head>
                 <title>Token Recibido</title>
                 <style>
-                  body { font-family: sans-serif; padding: 2em; line-height: 1.5; }
-                  h1 { color: #2c3e50; }
-                  pre { background: #f4f4f4; padding: 1em; border-radius: 4px; overflow-x: auto; }
+                body { font-family: sans-serif; padding: 2em; line-height: 1.5; }
+                h1 { color: #2c3e50; }
+                pre { background: #f4f4f4; padding: 1em; border-radius: 4px; overflow-x: auto; }
                 </style>
-              </head>
-              <body>
+            </head>
+            <body>
                 <h1>¡Token de acceso recibido!</h1>
                 <p><strong>Tipo de Token:</strong> ${token_type}</p>
                 <p><strong>Expira en:</strong> ${expires_in} minutos</p>
@@ -91,15 +91,29 @@ app.get('/callback', async (req, res) => {
                 <pre>${JSON.stringify(parseJwt(access_token), null, 2)}</pre>
                 <p><strong>Credencial verificable con prueba ZK:</strong></p>
                 <pre>${JSON.stringify(verifiable_credential, null, 2)}</pre>
-              </body>
+            </body>
             </html>
-          `);
+        `);
 
         // Use the access token for authenticated requests here if needed
 
     } catch (error) {
         console.error('Error exchanging authorization code:', error);
-        res.status(500).send('Failed to exchange authorization code for access token');
+        res.send(`
+            <html>
+            <head>
+                <title>Error</title>
+                <style>
+                body { font-family: sans-serif; padding: 2em; line-height: 1.5; }
+                h1 { color: #2c3e50; }
+                pre { background: #f4f4f4; padding: 1em; border-radius: 4px; overflow-x: auto; }
+                </style>
+            </head>
+            <body>
+                <h1>¡Hubo un error obteniendo el token de autorización!</h1>
+            </body>
+            </html>
+        `);
     }
 });
 
