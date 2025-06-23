@@ -32,16 +32,63 @@ function parseJwt(token) {
     }
 }
 
+app.get('/', (req, res) => {
+  res.send(`
+    <h1>Autentíquese usando su Wallet Zikuani</h1>
+    <form action="/login" method="get">
+      <label for="method">Seleccione el método de autenticación:</label><br><br>
+      <select id="method" name="method">
+        <option value="firma-digital">🔐 Firma Digital</option>
+        <option value="passport">🛂 Pasaporte</option>
+      </select><br><br>
+      <button type="submit">Continuar</button>
+    </form>
+  `);
+});
+
 app.get('/login', (req, res) => {
-    // Step 1: Redirect user to the OAuth server for authorization
-    const authUrl = `${AUTH_SERVER_URL}/authorize?` + querystring.stringify({
-        grant_type: "code",
-        client_id: CLIENT_ID,
-        user_id: ACCOUNT,
-        redirect_uri: REDIRECT_URI,
-        scope: "zk-firma-digital",        state: String(Math.floor(Math.random() * 10000)), // Convertir a string para evitar regeneración
-        nullifier_seed: 1000
-    });
+    const { method } = req.query;
+    let authUrl = "";
+
+    if (method === 'firma-digital') {
+        authUrl = `${AUTH_SERVER_URL}/authorize?` + querystring.stringify({
+            grant_type: "code",
+            client_id: CLIENT_ID,
+            user_id: ACCOUNT,
+            redirect_uri: REDIRECT_URI,
+            scope: "zk-firma-digital",
+            // Convertir a string para evitar regeneración
+            state: String(Math.floor(Math.random() * 10000)),
+            nullifier_seed: 1000
+        });
+    } else if (method === 'passport') {
+        authUrl = `${AUTH_SERVER_URL}/authorize?` + querystring.stringify({
+            grant_type: "code",
+            client_id: CLIENT_ID,
+            user_id: ACCOUNT,
+            redirect_uri: REDIRECT_URI,
+            scope: "zk-passport",
+            // Convertir a string para evitar regeneración
+            state: String(Math.floor(Math.random() * 10000)),
+            nullifier_seed: 1000,
+            data: encodeURIComponent(
+                JSON.stringify({
+                    "id": ACCOUNT,
+                    "type": "user",
+                    "attributes": {
+                        "age_lower_bound": 18,
+                        "uniqueness": true,
+                        "nationality": "COL",
+                        "nationality_check": true,
+                        "event_id": Math.floor(Math.random() * 100000),
+                    }
+                })
+            )
+        });
+    } else {
+        return res.status(400).send("Método de autenticación no válido.");
+    }
+
     res.send(`
         <h1>Autentíquese usando su Wallet Zikuani</h1>
         <p><a href="${authUrl}">Haga click en el enlance para comenzar el proceso de autenticación</a></p>
@@ -120,5 +167,5 @@ app.get('/callback', async (req, res) => {
 // Start the client server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`Zikuani wallet client running on http://localhost:${PORT}/login`);
+    console.log(`Zikuani wallet client running on http://localhost:${PORT}/`);
 });
