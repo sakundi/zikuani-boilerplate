@@ -61,14 +61,18 @@ app.get('/login', (req, res) => {
             state: String(Math.floor(Math.random() * 10000)),
             nullifier_seed: 1000
         });
+
+        res.send(`
+            <h1>Autentíquese usando su Wallet Zikuani</h1>
+            <p><a href="${authUrl}">Haga click en el enlance para comenzar el proceso de autenticación</a></p>
+        `);
     } else if (method === 'passport') {
-        authUrl = `${AUTH_SERVER_URL}/authorize?` + querystring.stringify({
+        const queryParams = {
             grant_type: "code",
             client_id: CLIENT_ID,
             user_id: ACCOUNT,
             redirect_uri: REDIRECT_URI,
             scope: "zk-passport",
-            // Convertir a string para evitar regeneración
             state: String(Math.floor(Math.random() * 10000)),
             nullifier_seed: 1000,
             data: encodeURIComponent(
@@ -84,15 +88,53 @@ app.get('/login', (req, res) => {
                     }
                 })
             )
-        });
+        };
+
+        authUrl = `${AUTH_SERVER_URL}/authorize?` + querystring.stringify(queryParams);
+
+        try {
+            // console.log(authUrl);
+            axios.get(authUrl, {
+                headers: { 'Accept': 'application/json' }
+            }).then((response) => {
+                // console.log(response);
+                // ✅ Send the JSON response back to the browser
+                const verification_link = response.data.link;
+                // console.log(verification_link);
+                return res.send(`
+                    <html>
+                        <head>
+                        <title>Scan QR Code</title>
+                        </head>
+                        <body>
+                        <h1>Escanee este código QR para autenticarse</h1>
+                        <div id="qrcode"></div>
+
+                        <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+                        <script>
+                            const authUrl = ${JSON.stringify(verification_link)};
+                            new QRCode(document.getElementById("qrcode"), {
+                            text: authUrl,
+                            width: 256,
+                            height: 256
+                            });
+                        </script>
+                        </body>
+                    </html>
+                `);
+            }).catch((error) => {
+                console.error("❌ Error:", error);
+                res.status(500).json({ error: "Failed to fetch from auth server" });
+            });
+
+        } catch (error) {
+            console.error("❌ Error fetching JSON from auth server:", error.message);
+            return res.status(500).json({ error: "Failed to fetch from auth server" });
+        }
+
     } else {
         return res.status(400).send("Método de autenticación no válido.");
     }
-
-    res.send(`
-        <h1>Autentíquese usando su Wallet Zikuani</h1>
-        <p><a href="${authUrl}">Haga click en el enlance para comenzar el proceso de autenticación</a></p>
-    `);
 });
 
 app.get('/callback', async (req, res) => {
