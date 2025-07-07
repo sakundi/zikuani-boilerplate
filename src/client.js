@@ -61,11 +61,8 @@ app.get('/login', (req, res) => {
             state: String(Math.floor(Math.random() * 10000)),
             nullifier_seed: 1000
         });
-
-        res.send(`
-            <h1>Autentíquese usando su Wallet Zikuani</h1>
-            <p><a href="${authUrl}">Haga click en el enlance para comenzar el proceso de autenticación</a></p>
-        `);
+        // Redirect page with the parameters
+        res.redirect(authUrl);
     } else if (method === 'passport') {
         const queryParams = {
             grant_type: "code",
@@ -99,29 +96,60 @@ app.get('/login', (req, res) => {
             }).then((response) => {
                 // console.log(response);
                 // ✅ Send the JSON response back to the browser
-                const verification_link = response.data.link;
-                // console.log(verification_link);
-                return res.send(`
-                    <html>
+                if (response.data.link !== undefined && response.data.link !== null ) {
+                    const verification_link = response.data.link;
+                    // console.log(verification_link);
+                    return res.send(`
+                        <html>
                         <head>
-                        <title>Scan QR Code</title>
+                            <title>Scan QR Code</title>
                         </head>
                         <body>
-                        <h1>Escanee este código QR para autenticarse</h1>
-                        <div id="qrcode"></div>
+                            <h1>Escanee este código QR para autenticarse</h1>
+                            <div id="qrcode"></div>
 
-                        <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-                        <script>
+                            <button id="confirmButton">Confirmar autenticación</button>
+
+                            <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+                            <script>
                             const authUrl = ${JSON.stringify(verification_link)};
                             new QRCode(document.getElementById("qrcode"), {
-                            text: authUrl,
-                            width: 256,
-                            height: 256
+                                text: authUrl,
+                                width: 256,
+                                height: 256
                             });
-                        </script>
+
+                            document.getElementById("confirmButton").addEventListener("click", () => {
+                                fetch("${AUTH_SERVER_URL}/check-validated?user_id=${queryParams.user_id}&scope=zk-passport")
+                                .then(response => {
+                                    if (!response.ok) throw new Error("Error al confirmar");
+                                    return response.json();
+                                })
+                                .then(data => {
+                                    if (data.status === "verified") {
+                                        alert("✅ Autenticación confirmada: " + JSON.stringify(data));
+                                        const confirmUrl = "${AUTH_SERVER_URL}/confirm-authorize?${querystring.stringify(queryParams)}";
+                                        window.location.href = confirmUrl;
+                                    } else {
+                                        alert("❌ Autenticación no confirmada aun");
+                                    }
+                                })
+                                .catch(error => {
+                                    alert("❌ Fallo al confirmar: " + error.message);
+                                });
+                            });
+                            </script>
                         </body>
-                    </html>
-                `);
+                        </html>
+                    `);
+                } else if (response.data.status !== undefined && response.data.status !== null &&
+                    response.data.status === "created"
+                ) {
+                    const confirmUrl = `${AUTH_SERVER_URL}/confirm-authorize?` + querystring.stringify(queryParams);
+                    res.redirect(confirmUrl);
+                } else {
+                    res.status(500).json({ error: "Failed to fetch from auth server" });
+                }
             }).catch((error) => {
                 console.error("❌ Error:", error);
                 res.status(500).json({ error: "Failed to fetch from auth server" });
@@ -159,7 +187,7 @@ app.get('/callback', async (req, res) => {
             }
         });
 
-        const { access_token, token_type, expires_in, verifiable_credential } = response.data;
+        const { access_token, token_type, expires_in, proof } = response.data;
 
         // Display the access token
         res.send(`
@@ -179,7 +207,7 @@ app.get('/callback', async (req, res) => {
                 <p><strong>Token:</strong></p>
                 <pre>${JSON.stringify(parseJwt(access_token), null, 2)}</pre>
                 <p><strong>Credencial verificable con prueba ZK:</strong></p>
-                <pre>${JSON.stringify(verifiable_credential, null, 2)}</pre>
+                <pre>${JSON.stringify(proof, null, 2)}</pre>
             </body>
             </html>
         `);
