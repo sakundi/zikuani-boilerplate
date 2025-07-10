@@ -167,7 +167,7 @@ app.get('/login', (req, res) => {
 
 app.get('/callback', async (req, res) => {
     // Step 2: Handle the callback from the OAuth server
-    const { code, state } = req.query;
+    const { code, state, scope} = req.query;
 
     if (!code) {
         return res.status(400).send('Se requiere código de autenticación');
@@ -180,6 +180,7 @@ app.get('/callback', async (req, res) => {
             client_id: CLIENT_ID,
             client_secret: CLIENT_SECRET,
             redirect_uri: REDIRECT_URI,
+            scope: scope,
             grant_type: 'authorization_code'
         }), {
             headers: {
