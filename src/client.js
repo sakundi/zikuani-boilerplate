@@ -34,15 +34,25 @@ function parseJwt(token) {
 
 app.get('/', (req, res) => {
   res.send(`
-    <h1>Autentíquese usando su Wallet Zikuani</h1>
-    <form action="/login" method="get">
-      <label for="method">Seleccione el método de autenticación:</label><br><br>
-      <select id="method" name="method">
-        <option value="firma-digital">🔐 Firma Digital</option>
-        <option value="passport">🛂 Pasaporte</option>
-      </select><br><br>
-      <button type="submit">Continuar</button>
-    </form>
+    <html>
+    <head>
+      <title>Zikuani Auth</title>
+      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css">
+    </head>
+    <body class="container py-5">
+      <h1 class="mb-4">Autentíquese usando su Wallet Zikuani</h1>
+      <form action="/login" method="get" class="vstack gap-3">
+        <div>
+          <label for="method" class="form-label">Seleccione el método de autenticación:</label>
+          <select id="method" name="method" class="form-select">
+            <option value="firma-digital">🔐 Firma Digital</option>
+            <option value="passport">🛂 Pasaporte</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-primary w-100">Continuar</button>
+      </form>
+    </body>
+    </html>
   `);
 });
 
@@ -63,8 +73,17 @@ app.get('/login', (req, res) => {
         });
 
         res.send(`
-            <h1>Autentíquese usando su Wallet Zikuani</h1>
-            <p><a href="${authUrl}">Haga click en el enlance para comenzar el proceso de autenticación</a></p>
+            <html>
+            <head>
+                <title>Iniciar autenticación</title>
+                <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css">
+            </head>
+            <body class="container py-5">
+                <h1 class="mb-4">Autentíquese usando su Wallet Zikuani</h1>
+                <p class="mb-3">Haga click en el siguiente enlace para comenzar el proceso de autenticación:</p>
+                <a class="btn btn-success" href="${authUrl}">Comenzar Autenticación</a>
+            </body>
+            </html>
         `);
     } else if (method === 'passport') {
         const queryParams = {
@@ -104,21 +123,22 @@ app.get('/login', (req, res) => {
                 return res.send(`
                     <html>
                         <head>
-                        <title>Scan QR Code</title>
+                            <title>Escanear código QR</title>
+                            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css">
                         </head>
-                        <body>
-                        <h1>Escanee este código QR para autenticarse</h1>
-                        <div id="qrcode"></div>
+                        <body class="container py-5 text-center">
+                            <h1 class="mb-4">Escanee este código QR para autenticarse</h1>
+                            <div id="qrcode" class="d-inline-block"></div>
 
-                        <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-                        <script>
-                            const authUrl = ${JSON.stringify(verification_link)};
-                            new QRCode(document.getElementById("qrcode"), {
-                            text: authUrl,
-                            width: 256,
-                            height: 256
-                            });
-                        </script>
+                            <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+                            <script>
+                                const authUrl = ${JSON.stringify(verification_link)};
+                                new QRCode(document.getElementById("qrcode"), {
+                                    text: authUrl,
+                                    width: 256,
+                                    height: 256
+                                });
+                            </script>
                         </body>
                     </html>
                 `);
@@ -166,20 +186,16 @@ app.get('/callback', async (req, res) => {
             <html>
             <head>
                 <title>Token Recibido</title>
-                <style>
-                body { font-family: sans-serif; padding: 2em; line-height: 1.5; }
-                h1 { color: #2c3e50; }
-                pre { background: #f4f4f4; padding: 1em; border-radius: 4px; overflow-x: auto; }
-                </style>
+                <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css">
             </head>
-            <body>
-                <h1>¡Token de acceso recibido!</h1>
+            <body class="container py-5">
+                <h1 class="mb-4 text-success">¡Token de acceso recibido!</h1>
                 <p><strong>Tipo de Token:</strong> ${token_type}</p>
                 <p><strong>Expira en:</strong> ${expires_in} minutos</p>
                 <p><strong>Token:</strong></p>
-                <pre>${JSON.stringify(parseJwt(access_token), null, 2)}</pre>
+                <pre class="bg-light p-3 rounded">${JSON.stringify(parseJwt(access_token), null, 2)}</pre>
                 <p><strong>Credencial verificable con prueba ZK:</strong></p>
-                <pre>${JSON.stringify(verifiable_credential, null, 2)}</pre>
+                <pre class="bg-light p-3 rounded">${JSON.stringify(verifiable_credential, null, 2)}</pre>
             </body>
             </html>
         `);
@@ -192,14 +208,10 @@ app.get('/callback', async (req, res) => {
             <html>
             <head>
                 <title>Error</title>
-                <style>
-                body { font-family: sans-serif; padding: 2em; line-height: 1.5; }
-                h1 { color: #2c3e50; }
-                pre { background: #f4f4f4; padding: 1em; border-radius: 4px; overflow-x: auto; }
-                </style>
+                <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css">
             </head>
-            <body>
-                <h1>¡Hubo un error obteniendo el token de autorización!</h1>
+            <body class="container py-5">
+                <h1 class="text-danger">¡Hubo un error obteniendo el token de autorización!</h1>
             </body>
             </html>
         `);
