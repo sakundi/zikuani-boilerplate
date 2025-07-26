@@ -33,17 +33,30 @@ function parseJwt(token) {
 }
 
 app.get('/', (req, res) => {
-  res.send(`
-    <h1>Autentíquese usando su Wallet Zikuani</h1>
-    <form action="/login" method="get">
-      <label for="method">Seleccione el método de autenticación:</label><br><br>
-      <select id="method" name="method">
-        <option value="firma-digital">🔐 Firma Digital</option>
-        <option value="passport">🛂 Pasaporte</option>
-      </select><br><br>
-      <button type="submit">Continuar</button>
-    </form>
-  `);
+    res.send(`
+        <!DOCTYPE html>
+        <html lang="es">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <title>Zikuani Login</title>
+            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+        </head>
+        <body class="container py-5">
+            <h1 class="mb-4">Autentíquese usando su Wallet Zikuani</h1>
+            <form action="/login" method="get" class="p-4 rounded border bg-light">
+                <div class="mb-3">
+                    <label for="method" class="form-label">Seleccione el método de autenticación:</label>
+                    <select id="method" name="method" class="form-select">
+                        <option value="firma-digital">🔐 Firma Digital</option>
+                        <option value="passport">🛂 Pasaporte</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">Continuar</button>
+            </form>
+        </body>
+        </html>
+    `);
 });
 
 app.get('/login', (req, res) => {
@@ -99,44 +112,29 @@ app.get('/login', (req, res) => {
                 if (response.data.link !== undefined && response.data.link !== null ) {
                     const verification_link = response.data.link;
                     // console.log(verification_link);
-                    return res.send(`
-                        <html>
+                        <!DOCTYPE html>
+                        <html lang="es">
                         <head>
-                            <title>Scan QR Code</title>
+                            <meta charset="UTF-8">
+                            <meta name="viewport" content="width=device-width, initial-scale=1">
+                            <title>Escanee el QR</title>
+                            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
                         </head>
-                        <body>
-                            <h1>Escanee este código QR para autenticarse</h1>
-                            <div id="qrcode"></div>
-
-                            <button id="confirmButton">Confirmar autenticación</button>
-
+                        <body class="container py-5">
+                            <h1 class="mb-4">Escanee este código QR para autenticarse</h1>
+                            <div id="qrcode" class="mb-4 d-flex justify-content-center"></div>
+                            <div class="text-center">
+                                <button id="confirmButton" class="btn btn-success">Confirmar autenticación</button>
+                            </div>
                             <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
                             <script>
                             const authUrl = ${JSON.stringify(verification_link)};
-                            new QRCode(document.getElementById("qrcode"), {
-                                text: authUrl,
-                                width: 256,
-                                height: 256
-                            });
-
+                            new QRCode(document.getElementById("qrcode"), { text: authUrl, width: 256, height: 256 });
                             document.getElementById("confirmButton").addEventListener("click", () => {
                                 fetch("${AUTH_SERVER_URL}/check-validated?user_id=${queryParams.user_id}&scope=zk-passport")
-                                .then(response => {
-                                    if (!response.ok) throw new Error("Error al confirmar");
-                                    return response.json();
-                                })
-                                .then(data => {
-                                    if (data.status === "verified") {
-                                        alert("✅ Autenticación confirmada: " + JSON.stringify(data));
-                                        const confirmUrl = "${AUTH_SERVER_URL}/confirm-authorize?${querystring.stringify(queryParams)}";
-                                        window.location.href = confirmUrl;
-                                    } else {
-                                        alert("❌ Autenticación no confirmada aun");
-                                    }
-                                })
-                                .catch(error => {
-                                    alert("❌ Fallo al confirmar: " + error.message);
-                                });
+                                .then(r => { if (!r.ok) throw new Error("Error al confirmar"); return r.json(); })
+                                .then(data => { if (data.status === "verified") { const confirmUrl = "${AUTH_SERVER_URL}/confirm-authorize?${querystring.stringify(queryParams)}"; window.location.href = confirmUrl; } else { alert("❌ Autenticación no confirmada aún"); } })
+                                .catch(err => alert("❌ Fallo al confirmar: " + err.message));
                             });
                             </script>
                         </body>
@@ -191,24 +189,26 @@ app.get('/callback', async (req, res) => {
         const { access_token, token_type, expires_in, proof } = response.data;
 
         // Display the access token
-        res.send(`
-            <html>
+            <!DOCTYPE html>
+            <html lang="es">
             <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1">
                 <title>Token Recibido</title>
-                <style>
-                body { font-family: sans-serif; padding: 2em; line-height: 1.5; }
-                h1 { color: #2c3e50; }
-                pre { background: #f4f4f4; padding: 1em; border-radius: 4px; overflow-x: auto; }
-                </style>
+                <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
             </head>
-            <body>
-                <h1>¡Token de acceso recibido!</h1>
+            <body class="container py-5">
+                <h1 class="mb-4 text-success">¡Token de acceso recibido!</h1>
                 <p><strong>Tipo de Token:</strong> ${token_type}</p>
                 <p><strong>Expira en:</strong> ${expires_in} minutos</p>
-                <p><strong>Token:</strong></p>
-                <pre>${JSON.stringify(parseJwt(access_token), null, 2)}</pre>
-                <p><strong>Credencial verificable con prueba ZK:</strong></p>
-                <pre>${JSON.stringify(proof, null, 2)}</pre>
+                <div class="mb-3">
+                    <p class="mb-1"><strong>Token:</strong></p>
+                    <pre class="bg-light p-3 rounded">${JSON.stringify(parseJwt(access_token), null, 2)}</pre>
+                </div>
+                <div>
+                    <p class="mb-1"><strong>Credencial verificable con prueba ZK:</strong></p>
+                    <pre class="bg-light p-3 rounded">${JSON.stringify(proof, null, 2)}</pre>
+                </div>
             </body>
             </html>
         `);
@@ -217,18 +217,16 @@ app.get('/callback', async (req, res) => {
 
     } catch (error) {
         console.error('Error exchanging authorization code:', error);
-        res.send(`
-            <html>
+            <!DOCTYPE html>
+            <html lang="es">
             <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1">
                 <title>Error</title>
-                <style>
-                body { font-family: sans-serif; padding: 2em; line-height: 1.5; }
-                h1 { color: #2c3e50; }
-                pre { background: #f4f4f4; padding: 1em; border-radius: 4px; overflow-x: auto; }
-                </style>
+                <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
             </head>
-            <body>
-                <h1>¡Hubo un error obteniendo el token de autorización!</h1>
+            <body class="container py-5">
+                <h1 class="text-danger">¡Hubo un error obteniendo el token de autorización!</h1>
             </body>
             </html>
         `);
