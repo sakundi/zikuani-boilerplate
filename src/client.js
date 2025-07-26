@@ -112,14 +112,10 @@ app.get('/login', (req, res) => {
         authUrl = `${AUTH_SERVER_URL}/authorize?` + querystring.stringify(queryParams);
 
         try {
-            // console.log(authUrl);
             axios.get(authUrl, {
                 headers: { 'Accept': 'application/json' }
             }).then((response) => {
-                // console.log(response);
-                // ✅ Send the JSON response back to the browser
                 const verification_link = response.data.link;
-                // console.log(verification_link);
                 return res.send(`
                     <html>
                         <head>
