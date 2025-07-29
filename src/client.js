@@ -112,6 +112,7 @@ app.get('/login', (req, res) => {
                 if (response.data.link !== undefined && response.data.link !== null ) {
                     const verification_link = response.data.link;
                     // console.log(verification_link);
+                    res.send(`
                         <!DOCTYPE html>
                         <html lang="es">
                         <head>
@@ -189,6 +190,7 @@ app.get('/callback', async (req, res) => {
         const { access_token, token_type, expires_in, proof } = response.data;
 
         // Display the access token
+        res.send(`
             <!DOCTYPE html>
             <html lang="es">
             <head>
@@ -217,6 +219,7 @@ app.get('/callback', async (req, res) => {
 
     } catch (error) {
         console.error('Error exchanging authorization code:', error);
+        res.send(`
             <!DOCTYPE html>
             <html lang="es">
             <head>
