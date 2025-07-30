@@ -20,5 +20,6 @@ spec:
           envFrom:
             - configMapRef:
                 name: boilerplate-config
+          imagePullPolicy: Always
       imagePullSecrets:
         - name: regcred
