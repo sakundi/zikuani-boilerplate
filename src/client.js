@@ -55,7 +55,7 @@ app.get('/', (req, res) => {
                     </select>
                 </div>
                 <div class="mb-3">
-                <label for="country" class="form-label">Seleccione su país (código de 3 letras):</label>
+                <label for="country" class="form-label">Seleccione el país de su pasaporte:</label>
                 <select id="country" name="country" class="form-select">
                     <option value="CRI">🇨🇷 Costa Rica (CRI)</option>
                     <option value="USA">🇺🇸 Estados Unidos (USA)</option>
