@@ -54,6 +54,22 @@ app.get('/', (req, res) => {
                         <option value="passport">🛂 Pasaporte</option>
                     </select>
                 </div>
+                <div class="mb-3">
+                <label for="country" class="form-label">Seleccione el país de su pasaporte:</label>
+                <select id="country" name="country" class="form-select">
+                    <option value="CRI">🇨🇷 Costa Rica (CRI)</option>
+                    <option value="USA">🇺🇸 Estados Unidos (USA)</option>
+                    <option value="ESP">🇪🇸 España (ESP)</option>
+                    <option value="DEU">🇩🇪 Alemania (DEU)</option>
+                    <option value="ARG">🇦🇷 Argentina (ARG)</option>
+                    <option value="BRA">🇧🇷 Brasil (BRA)</option>
+                    <option value="COL">🇨🇴 Colombia (COL)</option>
+                    <option value="MEX">🇲🇽 México (MEX)</option>
+                    <option value="PER">🇵🇪 Perú (PER)</option>
+                    <option value="CHL">🇨🇱 Chile (CHL)</option>
+                    <!-- Add more as needed -->
+                </select>
+                </div>
                 <button type="submit" class="btn btn-primary">Continuar</button>
             </form>
         </body>
@@ -62,7 +78,7 @@ app.get('/', (req, res) => {
 });
 
 app.get('/login', (req, res) => {
-    const { method, user } = req.query;
+    const { method, user, country } = req.query;
     let authUrl = "";
 
     if (method === 'firma-digital') {
@@ -94,7 +110,7 @@ app.get('/login', (req, res) => {
                     "attributes": {
                         "age_lower_bound": 18,
                         "uniqueness": true,
-                        "nationality": COUNTRY,
+                        "nationality": country,
                         "nationality_check": true,
                         "event_id": Math.floor(Math.random() * 100000),
                     }
