@@ -9,6 +9,7 @@ const CLIENT_ID = process.env.REACT_APP_CLIENT_ID || "hello@example.com";
 const CLIENT_SECRET = process.env.REACT_APP_CLIENT_SECRET || "password";
 const REDIRECT_URI = process.env.REACT_APP_REDIRECT_URI || "http://localhost:3000/callback";
 const AUTH_SERVER_URL = process.env.REACT_APP_AUTH_SERVER_URL || "https://app.sakundi.io";
+const COUNTRY = process.env.REACT_APP_COUNTRY || "CRI";
 
 function parseJwt(token) {
     try {
@@ -93,7 +94,7 @@ app.get('/login', (req, res) => {
                     "attributes": {
                         "age_lower_bound": 18,
                         "uniqueness": true,
-                        "nationality": "COL",
+                        "nationality": COUNTRY,
                         "nationality_check": true,
                         "event_id": Math.floor(Math.random() * 100000),
                     }
@@ -123,7 +124,8 @@ app.get('/login', (req, res) => {
                             <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
                         </head>
                         <body class="container py-5">
-                            <h1 class="mb-4">Escanee este código QR para autenticarse</h1>
+                            <h2 class="mb-4">Escanee este código QR para autenticarse usando la aplicación rarime-app</h2>
+                            <a href="https://docs.rarimo.com/rarime-app/" target="_blank">Encuentre la aplicación aquí</a>
                             <div id="qrcode" class="mb-4 d-flex justify-content-center"></div>
                             <div class="text-center">
                                 <button id="confirmButton" class="btn btn-success">Confirmar autenticación</button>
