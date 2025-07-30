@@ -46,6 +46,8 @@ app.get('/', (req, res) => {
             <h1 class="mb-4">Autentíquese usando su Wallet Zikuani</h1>
             <form action="/login" method="get" class="p-4 rounded border bg-light">
                 <div class="mb-3">
+                    <label for="fname">Usuario:</label><br>
+                    <input type="text" id="user" name="user"><br>
                     <label for="method" class="form-label">Seleccione el método de autenticación:</label>
                     <select id="method" name="method" class="form-select">
                         <option value="firma-digital">🔐 Firma Digital</option>
@@ -60,14 +62,14 @@ app.get('/', (req, res) => {
 });
 
 app.get('/login', (req, res) => {
-    const { method } = req.query;
+    const { method, user } = req.query;
     let authUrl = "";
 
     if (method === 'firma-digital') {
         authUrl = `${AUTH_SERVER_URL}/authorize?` + querystring.stringify({
             grant_type: "code",
             client_id: CLIENT_ID,
-            user_id: ACCOUNT,
+            user_id: user,
             redirect_uri: REDIRECT_URI,
             scope: "zk-firma-digital",
             // Convertir a string para evitar regeneración
@@ -80,14 +82,14 @@ app.get('/login', (req, res) => {
         const queryParams = {
             grant_type: "code",
             client_id: CLIENT_ID,
-            user_id: ACCOUNT,
+            user_id: user,
             redirect_uri: REDIRECT_URI,
             scope: "zk-passport",
             state: String(Math.floor(Math.random() * 10000)),
             nullifier_seed: 1000,
             data: encodeURIComponent(
                 JSON.stringify({
-                    "id": ACCOUNT,
+                    "id": user,
                     "type": "user",
                     "attributes": {
                         "age_lower_bound": 18,
