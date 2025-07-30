@@ -9,7 +9,6 @@ const CLIENT_ID = process.env.REACT_APP_CLIENT_ID || "hello@example.com";
 const CLIENT_SECRET = process.env.REACT_APP_CLIENT_SECRET || "password";
 const REDIRECT_URI = process.env.REACT_APP_REDIRECT_URI || "http://localhost:3000/callback";
 const AUTH_SERVER_URL = process.env.REACT_APP_AUTH_SERVER_URL || "https://app.sakundi.io";
-const ACCOUNT = process.env.REACT_APP_USER_ID || "user@usermail.com";
 
 function parseJwt(token) {
     try {
