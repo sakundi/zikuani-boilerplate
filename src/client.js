@@ -43,7 +43,7 @@ app.get('/', (req, res) => {
             <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
         </head>
         <body class="container py-5">
-            <h1 class="mb-4">Autentíquese usando su Wallet Zikuani</h1>
+            <h1 class="mb-4">Pruebe su identidad de forma privada con Zikuani</h1>
             <form action="/login" method="get" class="p-4 rounded border bg-light">
                 <div class="mb-3">
                     <label for="fname">Usuario:</label><br>
