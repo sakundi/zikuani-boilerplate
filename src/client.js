@@ -1,6 +1,9 @@
 const express = require('express');
+const ethers = require('ethers');
 const axios = require('axios');
 const querystring = require('querystring');
+const { Address, encodeAbiParameters,
+        parseAbiParameters, toHex } = require("viem");
 
 const app = express();
 
@@ -9,7 +12,6 @@ const CLIENT_ID = process.env.REACT_APP_CLIENT_ID || "hello@example.com";
 const CLIENT_SECRET = process.env.REACT_APP_CLIENT_SECRET || "password";
 const REDIRECT_URI = process.env.REACT_APP_REDIRECT_URI || "http://localhost:3000/callback";
 const AUTH_SERVER_URL = process.env.REACT_APP_AUTH_SERVER_URL || "https://app.sakundi.io";
-const COUNTRY = process.env.REACT_APP_COUNTRY || "CRI";
 
 function parseJwt(token) {
     try {
@@ -29,6 +31,39 @@ function parseJwt(token) {
     } catch (error) {
         console.error('Invalid token:', error);
         return null;
+    }
+}
+
+function buildVoteArguments(proof, vote) {
+    // console.log(typeof proof);
+    // console.log(proof);
+
+    if (!proof.proof.piA.length || !proof.proof.piB.length || !proof.proof.piC.length) {
+      throw new Error('Invalid proof structure')
+    }
+
+    const nullifier = BigInt(proof.pubSignals[0])
+    const identityCreationTimestamp = BigInt(proof.pubSignals[15])
+    const root = BigInt(proof.pubSignals[11])
+    const currentDate = BigInt(proof.pubSignals[13])
+
+    const a = [BigInt(proof.proof.piA[0]), BigInt(proof.proof.piA[1])]
+    const b = [
+      [BigInt(proof.proof.piB[0][1]), BigInt(proof.proof.piB[0][0])],
+      [BigInt(proof.proof.piB[1][1]), BigInt(proof.proof.piB[1][0])],
+    ]
+    const c = [BigInt(proof.proof.piC[0]), BigInt(proof.proof.piC[1])]
+
+    return {
+      args: [
+        toHex(root, { size: 32 }),
+        currentDate,
+        encodeAbiParameters(parseAbiParameters('uint256, (uint256, uint256)'), [
+            vote,
+            [nullifier, identityCreationTimestamp],
+        ]),
+        { a, b, c },
+      ],
     }
 }
 
@@ -219,16 +254,15 @@ app.get('/callback', async (req, res) => {
                 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
             </head>
             <body class="container py-5">
-                <h1 class="mb-4 text-success">¡Token de acceso recibido!</h1>
-                <p><strong>Tipo de Token:</strong> ${token_type}</p>
-                <p><strong>Expira en:</strong> ${expires_in} minutos</p>
+                <h1 class="mb-4 text-success">¡Usuario autenticado, bienvenido!</h1>
+                <p><strong>Sesión expira en:</strong> ${expires_in} minutos</p>
                 <div class="mb-3">
                     <p class="mb-1"><strong>Token:</strong></p>
                     <pre class="bg-light p-3 rounded">${JSON.stringify(parseJwt(access_token), null, 2)}</pre>
                 </div>
                 <div>
                     <p class="mb-1"><strong>Credencial verificable con prueba ZK:</strong></p>
-                    <pre class="bg-light p-3 rounded">${JSON.stringify(proof, null, 2)}</pre>
+                    <pre class="bg-light p-3 rounded">${buildVoteArguments(JSON.parse(proof), 1)}</pre>
                 </div>
             </body>
             </html>
