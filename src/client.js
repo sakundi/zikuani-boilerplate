@@ -5,11 +5,10 @@ const querystring = require('querystring');
 const app = express();
 
 // Secrets
-const CLIENT_ID = process.env.REACT_APP_CLIENT_ID || "hello@example.com";
+const CLIENT_ID = process.env.REACT_APP_CLIENT_ID || "demo@sakundi.io";
 const CLIENT_SECRET = process.env.REACT_APP_CLIENT_SECRET || "password";
 const REDIRECT_URI = process.env.REACT_APP_REDIRECT_URI || "http://localhost:3000/callback";
 const AUTH_SERVER_URL = process.env.REACT_APP_AUTH_SERVER_URL || "https://app.sakundi.io";
-const COUNTRY = process.env.REACT_APP_COUNTRY || "CRI";
 
 function parseJwt(token) {
     try {
@@ -46,28 +45,36 @@ app.get('/', (req, res) => {
             <h1 class="mb-4">Pruebe su identidad de forma privada con Zikuani</h1>
             <form action="/login" method="get" class="p-4 rounded border bg-light">
                 <div class="mb-3">
-                    <label for="fname">Usuario:</label><br>
+                    <label for="fname">Email:</label><br>
                     <input type="text" id="user" name="user"><br>
                     <label for="method" class="form-label">Seleccione el método de autenticación:</label>
                     <select id="method" name="method" class="form-select">
-                        <option value="firma-digital">🔐 Firma Digital</option>
                         <option value="passport">🛂 Pasaporte</option>
+                        <option value="firma-digital">🔐 Firma Digital</option>
                     </select>
                 </div>
                 <div class="mb-3">
                 <label for="country" class="form-label">Seleccione el país de su pasaporte:</label>
                 <select id="country" name="country" class="form-select">
                     <option value="CRI">🇨🇷 Costa Rica (CRI)</option>
-                    <option value="USA">🇺🇸 Estados Unidos (USA)</option>
-                    <option value="ESP">🇪🇸 España (ESP)</option>
-                    <option value="DEU">🇩🇪 Alemania (DEU)</option>
-                    <option value="ARG">🇦🇷 Argentina (ARG)</option>
-                    <option value="BRA">🇧🇷 Brasil (BRA)</option>
                     <option value="COL">🇨🇴 Colombia (COL)</option>
-                    <option value="MEX">🇲🇽 México (MEX)</option>
-                    <option value="PER">🇵🇪 Perú (PER)</option>
-                    <option value="CHL">🇨🇱 Chile (CHL)</option>
-                    <!-- Add more as needed -->
+                    <option value="ZAF">🇿🇦 South Africa (ZAF)</option>
+                    <option value="USA">🇺🇸 United States (USA)</option>
+                    <option value="CAN">🇨🇦 Canada (CAN)</option>
+                    <option value="MEX">🇲🇽 Mexico (MEX)</option>
+                    <option value="BRA">🇧🇷 Brazil (BRA)</option>
+                    <option value="ARG">🇦🇷 Argentina (ARG)</option>
+                    <option value="ESP">🇪🇸 Spain (ESP)</option>
+                    <option value="FRA">🇫🇷 France (FRA)</option>
+                    <option value="DEU">🇩🇪 Germany (DEU)</option>
+                    <option value="GBR">🇬🇧 United Kingdom (GBR)</option>
+                    <option value="ITA">🇮🇹 Italy (ITA)</option>
+                    <option value="PRT">🇵🇹 Portugal (PRT)</option>
+                    <option value="AUS">🇦🇺 Australia (AUS)</option>
+                    <option value="JPN">🇯🇵 Japan (JPN)</option>
+                    <option value="CHN">🇨🇳 China (CHN)</option>
+                    <option value="IND">🇮🇳 India (IND)</option>
+                    <option value="KOR">🇰🇷 South Korea (KOR)</option>
                 </select>
                 </div>
                 <button type="submit" class="btn btn-primary">Continuar</button>
@@ -153,7 +160,11 @@ app.get('/login', (req, res) => {
                             document.getElementById("confirmButton").addEventListener("click", () => {
                                 fetch("${AUTH_SERVER_URL}/check-validated?user_id=${queryParams.user_id}&scope=zk-passport")
                                 .then(r => { if (!r.ok) throw new Error("Error al confirmar"); return r.json(); })
-                                .then(data => { if (data.status === "verified") { const confirmUrl = "${AUTH_SERVER_URL}/confirm-authorize?${querystring.stringify(queryParams)}"; window.location.href = confirmUrl; } else { alert("❌ Autenticación no confirmada aún"); } })
+                                .then(data => { if (data.status === "verified") {
+                                                    const confirmUrl = "${AUTH_SERVER_URL}/confirm-authorize?${querystring.stringify(queryParams)}"; window.location.href = confirmUrl;
+                                                } else {
+                                                    alert("❌ Autenticación no confirmada aún"); }
+                                                })
                                 .catch(err => alert("❌ Fallo al confirmar: " + err.message));
                             });
                             </script>
