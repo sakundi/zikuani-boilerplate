@@ -1,6 +1,8 @@
 const express = require('express');
 const axios = require('axios');
 const querystring = require('querystring');
+const fs = require('fs');
+const path = require('path');
 
 const app = express();
 
@@ -10,6 +12,16 @@ const CLIENT_SECRET = process.env.REACT_APP_CLIENT_SECRET || "password";
 const REDIRECT_URI = process.env.REACT_APP_REDIRECT_URI || "http://localhost:3000/callback";
 const AUTH_SERVER_URL = process.env.REACT_APP_AUTH_SERVER_URL || "https://app.sakundi.io";
 const COUNTRY = process.env.REACT_APP_COUNTRY || "CRI";
+
+// Load translations
+const translations = {
+    es: JSON.parse(fs.readFileSync(path.join(__dirname, 'locales', 'es.json'), 'utf8')),
+    en: JSON.parse(fs.readFileSync(path.join(__dirname, 'locales', 'en.json'), 'utf8'))
+};
+
+function getTranslation(lang, key) {
+    return translations[lang]?.[key] || translations.es[key] || key;
+}
 
 function parseJwt(token) {
     try {
@@ -33,9 +45,16 @@ function parseJwt(token) {
 }
 
 app.get('/', (req, res) => {
+    const lang = req.query.lang || 'es';
+    const t = (key) => getTranslation(lang, key);
+    
+    const countryOptions = Object.entries(translations[lang].countries || translations.es.countries)
+        .map(([code, name]) => `<option value="${code}">${name}</option>`)
+        .join('');
+    
     res.send(`
         <!DOCTYPE html>
-        <html lang="es">
+        <html lang="${lang}">
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -43,42 +62,47 @@ app.get('/', (req, res) => {
             <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
         </head>
         <body class="container py-5">
-            <h1 class="mb-4">Pruebe su identidad de forma privada con Zikuani</h1>
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>${t('title')}</h1>
+                <select id="languageSelect" class="form-select" style="width: auto;" onchange="changeLanguage()">
+                    <option value="es" ${lang === 'es' ? 'selected' : ''}>🇪🇸 Español</option>
+                    <option value="en" ${lang === 'en' ? 'selected' : ''}>🇺🇸 English</option>
+                </select>
+            </div>
             <form action="/login" method="get" class="p-4 rounded border bg-light">
+                <input type="hidden" name="lang" value="${lang}">
                 <div class="mb-3">
-                    <label for="fname">Usuario:</label><br>
-                    <input type="text" id="user" name="user"><br>
-                    <label for="method" class="form-label">Seleccione el método de autenticación:</label>
+                    <label for="user">${t('user')}</label><br>
+                    <input type="text" id="user" name="user" class="form-control"><br>
+                    <label for="method" class="form-label">${t('authMethod')}</label>
                     <select id="method" name="method" class="form-select">
-                        <option value="firma-digital">🔐 Firma Digital</option>
-                        <option value="passport">🛂 Pasaporte</option>
+                        <option value="firma-digital">${t('digitalSignature')}</option>
+                        <option value="passport">${t('passport')}</option>
                     </select>
                 </div>
                 <div class="mb-3">
-                <label for="country" class="form-label">Seleccione el país de su pasaporte:</label>
+                <label for="country" class="form-label">${t('country')}</label>
                 <select id="country" name="country" class="form-select">
-                    <option value="CRI">🇨🇷 Costa Rica (CRI)</option>
-                    <option value="USA">🇺🇸 Estados Unidos (USA)</option>
-                    <option value="ESP">🇪🇸 España (ESP)</option>
-                    <option value="DEU">🇩🇪 Alemania (DEU)</option>
-                    <option value="ARG">🇦🇷 Argentina (ARG)</option>
-                    <option value="BRA">🇧🇷 Brasil (BRA)</option>
-                    <option value="COL">🇨🇴 Colombia (COL)</option>
-                    <option value="MEX">🇲🇽 México (MEX)</option>
-                    <option value="PER">🇵🇪 Perú (PER)</option>
-                    <option value="CHL">🇨🇱 Chile (CHL)</option>
-                    <!-- Add more as needed -->
+                    ${countryOptions}
                 </select>
                 </div>
-                <button type="submit" class="btn btn-primary">Continuar</button>
+                <button type="submit" class="btn btn-primary">${t('continue')}</button>
             </form>
+            <script>
+                function changeLanguage() {
+                    const lang = document.getElementById('languageSelect').value;
+                    window.location.href = '/?lang=' + lang;
+                }
+            </script>
         </body>
         </html>
     `);
 });
 
 app.get('/login', (req, res) => {
-    const { method, user, country } = req.query;
+    const { method, user, country, lang } = req.query;
+    const currentLang = lang || 'es';
+    const t = (key) => getTranslation(currentLang, key);
     let authUrl = "";
 
     if (method === 'firma-digital') {
@@ -132,7 +156,7 @@ app.get('/login', (req, res) => {
                     // console.log(verification_link);
                     res.send(`
                         <!DOCTYPE html>
-                        <html lang="es">
+                        <html lang="${currentLang}">
                         <head>
                             <meta charset="UTF-8">
                             <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -140,11 +164,11 @@ app.get('/login', (req, res) => {
                             <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
                         </head>
                         <body class="container py-5">
-                            <h2 class="mb-4">Escanee este código QR para autenticarse usando la aplicación rarime-app</h2>
-                            <a href="https://docs.rarimo.com/rarime-app/" target="_blank">Encuentre la aplicación aquí</a>
+                            <h2 class="mb-4">${t('scanQR')}</h2>
+                            <a href="https://docs.rarimo.com/rarime-app/" target="_blank">${t('findApp')}</a>
                             <div id="qrcode" class="mb-4 d-flex justify-content-center"></div>
                             <div class="text-center">
-                                <button id="confirmButton" class="btn btn-success">Confirmar autenticación</button>
+                                <button id="confirmButton" class="btn btn-success">${t('confirmAuth')}</button>
                             </div>
                             <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
                             <script>
@@ -153,8 +177,8 @@ app.get('/login', (req, res) => {
                             document.getElementById("confirmButton").addEventListener("click", () => {
                                 fetch("${AUTH_SERVER_URL}/check-validated?user_id=${queryParams.user_id}&scope=zk-passport")
                                 .then(r => { if (!r.ok) throw new Error("Error al confirmar"); return r.json(); })
-                                .then(data => { if (data.status === "verified") { const confirmUrl = "${AUTH_SERVER_URL}/confirm-authorize?${querystring.stringify(queryParams)}"; window.location.href = confirmUrl; } else { alert("❌ Autenticación no confirmada aún"); } })
-                                .catch(err => alert("❌ Fallo al confirmar: " + err.message));
+                                .then(data => { if (data.status === "verified") { const confirmUrl = "${AUTH_SERVER_URL}/confirm-authorize?${querystring.stringify(queryParams)}"; window.location.href = confirmUrl; } else { alert("${t('authNotConfirmed')}"); } })
+                                .catch(err => alert("${t('confirmError')} " + err.message));
                             });
                             </script>
                         </body>
@@ -179,16 +203,18 @@ app.get('/login', (req, res) => {
         }
 
     } else {
-        return res.status(400).send("Método de autenticación no válido.");
+        return res.status(400).send(t('invalidAuthMethod'));
     }
 });
 
 app.get('/callback', async (req, res) => {
     // Step 2: Handle the callback from the OAuth server
-    const { code, state, scope} = req.query;
+    const { code, state, scope, lang } = req.query;
+    const currentLang = lang || 'es';
+    const t = (key) => getTranslation(currentLang, key);
 
     if (!code) {
-        return res.status(400).send('Se requiere código de autenticación');
+        return res.status(400).send(t('authCodeRequired'));
     }
 
     try {
@@ -211,7 +237,7 @@ app.get('/callback', async (req, res) => {
         // Display the access token
         res.send(`
             <!DOCTYPE html>
-            <html lang="es">
+            <html lang="${currentLang}">
             <head>
                 <meta charset="UTF-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -219,14 +245,14 @@ app.get('/callback', async (req, res) => {
                 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
             </head>
             <body class="container py-5">
-                <h1 class="mb-4 text-success">¡Usuario autenticado, bienvenido!</h1>
-                <p><strong>Sesión expira en:</strong> ${expires_in} minutos</p>
+                <h1 class="mb-4 text-success">${t('welcome')}</h1>
+                <p><strong>${t('sessionExpires')}</strong> ${expires_in} ${t('minutes')}</p>
                 <div class="mb-3">
-                    <p class="mb-1"><strong>Token:</strong></p>
+                    <p class="mb-1"><strong>${t('token')}</strong></p>
                     <pre class="bg-light p-3 rounded">${JSON.stringify(parseJwt(access_token), null, 2)}</pre>
                 </div>
                 <div>
-                    <p class="mb-1"><strong>Credencial verificable con prueba ZK:</strong></p>
+                    <p class="mb-1"><strong>${t('verifiableCredential')}</strong></p>
                     <pre class="bg-light p-3 rounded">${JSON.stringify(proof, null, 2)}</pre>
                 </div>
             </body>
@@ -239,7 +265,7 @@ app.get('/callback', async (req, res) => {
         console.error('Error exchanging authorization code:', error);
         res.send(`
             <!DOCTYPE html>
-            <html lang="es">
+            <html lang="${currentLang}">
             <head>
                 <meta charset="UTF-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -247,7 +273,7 @@ app.get('/callback', async (req, res) => {
                 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
             </head>
             <body class="container py-5">
-                <h1 class="text-danger">¡Hubo un error obteniendo el token de autorización!</h1>
+                <h1 class="text-danger">${t('authError')}</h1>
             </body>
             </html>
         `);
