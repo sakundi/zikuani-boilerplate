@@ -250,6 +250,8 @@ function renderHomePage(lang, texts) {
                 </div>
                 <button type="submit" class="btn btn-primary">${texts.home.continueButton}</button>
             </form>
+            <a href="rarime://external?type=proof-request&proof_params_url=https%3A%2F%2Fpassport-dev.sakundi.io%2Fintegrations%2Fverificator-svc%2Fpublic%2Fproof-params%2F0xdc688348f62da828ae06ad7a05ce4d6b45970e96d55b8e59f8a70e14f92464">Open Rarime</a>
+            <a href="whatsapp://send?text=Hello">Open WhatsApp</a>
         </body>
         </html>
     `;
