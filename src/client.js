@@ -396,7 +396,7 @@ app.get('/login', (req, res) => {
             redirect_uri: REDIRECT_URI,
             scope: 'zk-firma-digital',
             state,
-            nullifier_seed: 1000
+            nullifier_seed: String(Math.floor(Math.random() * 10000))
         });
         return res.redirect(authUrl);
     }
@@ -409,7 +409,7 @@ app.get('/login', (req, res) => {
             redirect_uri: REDIRECT_URI,
             scope: 'zk-passport',
             state,
-            nullifier_seed: 1000,
+            nullifier_seed: String(Math.floor(Math.random() * 10000)),
             data: encodeURIComponent(
                 JSON.stringify({
                     id: user,
