@@ -87,7 +87,7 @@ const translations = {
             methodLabel: 'Select the authentication method:',
             methodHint: 'Choose how you want to verify your identity.',
             passportOption: '🛂 Passport',
-            passportDescription: 'Passport verification backed by Zikuani biometrics.',
+            passportDescription: 'Passport verification backed by Zikuani.',
             signatureOption: '🔐 Firma Digital',
             signatureDescription: 'Complete a Firma Digital flow with zero-knowledge privacy.',
             countryLabel: 'Select the country of your passport:',
