@@ -29,7 +29,7 @@ const translations = {
             passportOption: '🛂 Pasaporte',
             passportDescription: 'Verificación con pasaporte biométrico respaldado por Zikuani.',
             signatureOption: '🔐 Firma Digital',
-            signatureDescription: 'Use su firma digital con protección de conocimiento cero.',
+            signatureDescription: 'Use su Firma Digital con protección de conocimiento cero.',
             countryLabel: 'Seleccione el país de su pasaporte:',
             countryHint: 'Seleccione el país que emitió su pasaporte.',
             continueButton: 'Continuar'
@@ -88,8 +88,8 @@ const translations = {
             methodHint: 'Choose how you want to verify your identity.',
             passportOption: '🛂 Passport',
             passportDescription: 'Passport verification backed by Zikuani biometrics.',
-            signatureOption: '🔐 Digital Signature',
-            signatureDescription: 'Complete a digital signature flow with zero-knowledge privacy.',
+            signatureOption: '🔐 Firma Digital',
+            signatureDescription: 'Complete a Firma Digital flow with zero-knowledge privacy.',
             countryLabel: 'Select the country of your passport:',
             countryHint: 'Pick the country that issued your passport.',
             continueButton: 'Continue'
