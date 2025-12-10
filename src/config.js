@@ -14,7 +14,7 @@ const AUTH_SERVER_URL = process.env.AUTH_SERVER_URL || 'https://app.sakundi.io';
 const PORT = process.env.PORT || 3000;
 
 const countries = [
-    { value: 'COL', emoji: '🇨🇷', labels: { es: 'Costa Rica (CRI)' } }
+    { value: 'CRI', emoji: '🇨🇷', labels: { es: 'Costa Rica (CRI)' } }
 ];
 
 module.exports = {
