@@ -1,16 +1,11 @@
 const axios = require('axios');
 const querystring = require('querystring');
 
-const {
-    AUTH_SERVER_URL,
-    CLIENT_ID,
-    CLIENT_SECRET,
-    REDIRECT_URI
-} = require('./config');
+const { AUTH_SERVER_URL, CLIENT_ID, CLIENT_SECRET, REDIRECT_URI } = require('./config');
 const { renderHomePage } = require('./renderers/homePage');
 const { renderPassportPage } = require('./renderers/passportPage');
-const { renderCallbackErrorPage, renderCallbackSuccessPage } = require('./renderers/callbackPage');
-const { escapeHtml } = require('./renderers/common');
+const { renderCallbackErrorPage } = require('./renderers/callbackPage');
+const { renderDashboardPage } = require('./renderers/dashboardPage');
 const { translations } = require('./translations');
 const { createState, getLang, getLanguageFromState } = require('./utils/language');
 const { parseJwt } = require('./utils/token');
@@ -21,22 +16,8 @@ function handleHome(req, res) {
     res.send(renderHomePage(lang, texts));
 }
 
-function buildFirmaDigitalUrl({ user, state }) {
-    return (
-        `${AUTH_SERVER_URL}/authorize?` +
-        querystring.stringify({
-            grant_type: 'code',
-            client_id: CLIENT_ID,
-            user_id: user,
-            redirect_uri: REDIRECT_URI,
-            scope: 'zk-firma-digital',
-            state,
-            nullifier_seed: String(Math.floor(Math.random() * 10000))
-        })
-    );
-}
-
 function buildPassportQuery({ user, country, state }) {
+    const nationality = country || 'CRI';
     return {
         grant_type: 'code',
         client_id: CLIENT_ID,
@@ -52,7 +33,7 @@ function buildPassportQuery({ user, country, state }) {
                 attributes: {
                     age_lower_bound: 18,
                     uniqueness: true,
-                    nationality: country,
+                    nationality,
                     nationality_check: true,
                     event_id: Math.floor(Math.random() * 100000)
                 }
@@ -97,23 +78,53 @@ async function handlePassportLogin(req, res, { lang, texts, user, country, state
 }
 
 function handleLogin(req, res) {
+    if (req.session?.user) {
+        res.redirect('/dashboard');
+        return;
+    }
     const lang = getLang(req);
     const texts = translations[lang];
-    const { method, user, country } = req.query;
+    const { user, country } = req.query;
     const state = createState(lang);
 
-    if (method === 'firma-digital') {
-        const authUrl = buildFirmaDigitalUrl({ user, state });
-        res.redirect(authUrl);
+    handlePassportLogin(req, res, { lang, texts, user, country, state });
+}
+
+function storeSession(req, data) {
+    return new Promise((resolve, reject) => {
+        req.session.regenerate((regenErr) => {
+            if (regenErr) {
+                return reject(regenErr);
+            }
+            req.session.user = data;
+            resolve();
+        });
+    });
+}
+
+function destroySession(req) {
+    return new Promise((resolve, reject) => {
+        req.session.destroy((err) => {
+            if (err) {
+                return reject(err);
+            }
+            resolve();
+        });
+    });
+}
+
+function requireAuth(req, res, next) {
+    const sessionUser = req.session?.user;
+    if (!sessionUser) {
+        res.redirect('/');
         return;
     }
-
-    if (method === 'passport') {
-        handlePassportLogin(req, res, { lang, texts, user, country, state });
+    const now = Date.now();
+    if (sessionUser.expiresAt && now > sessionUser.expiresAt) {
+        destroySession(req).finally(() => res.redirect('/'));
         return;
     }
-
-    res.status(400).send(texts.errors.invalidMethod);
+    next();
 }
 
 async function handleCallback(req, res) {
@@ -143,31 +154,54 @@ async function handleCallback(req, res) {
         );
 
         const { access_token, expires_in, proof } = response.data;
-        const decodedToken = parseJwt(access_token);
-        const tokenReadable = decodedToken ? JSON.stringify(decodedToken, null, 2) : access_token ? String(access_token) : '';
-        const proofReadable = proof ? JSON.stringify(proof, null, 2) : texts.callback.noProof;
-        const tokenPayload = escapeHtml(tokenReadable);
-        const proofPayload = escapeHtml(proofReadable);
+        if (!proof || !access_token) {
+            throw new Error('Missing proof or access token');
+        }
 
-        res.send(
-            renderCallbackSuccessPage(lang, texts, {
-                expiresIn: expires_in,
-                tokenPayload,
-                tokenRaw: tokenReadable,
-                proofPayload,
-                proofRaw: proofReadable
-            })
-        );
+        const decodedToken = parseJwt(access_token);
+        const expiresAt = Date.now() + (Number(expires_in) || 0) * 1000;
+        const userId =
+            (decodedToken && decodedToken.sub) ||
+            (decodedToken && decodedToken.user_id) ||
+            (decodedToken && decodedToken.id) ||
+            'user';
+
+        await storeSession(req, { userId, expiresAt });
+
+        res.redirect('/dashboard');
     } catch (error) {
         console.error('Error exchanging authorization code:', error);
         res.send(renderCallbackErrorPage(lang, texts));
     }
 }
 
+async function handleDashboard(req, res) {
+    const sessionUser = req.session?.user;
+    if (!sessionUser) {
+        res.redirect('/');
+        return;
+    }
+    const lang = getLang(req);
+    const texts = translations[lang];
+    res.send(
+        renderDashboardPage(lang, texts, {
+            userId: sessionUser.userId,
+            expiresAt: sessionUser.expiresAt
+        })
+    );
+}
+
+async function handleLogout(req, res) {
+    await destroySession(req).catch((err) => console.error('Error destroying session', err));
+    res.redirect('/');
+}
+
 function registerRoutes(app) {
     app.get('/', handleHome);
     app.get('/login', handleLogin);
     app.get('/callback', handleCallback);
+    app.get('/dashboard', requireAuth, handleDashboard);
+    app.get('/logout', handleLogout);
 }
 
 module.exports = {

@@ -1,10 +1,7 @@
 const { countries } = require('../config');
-const { renderLanguageSwitcher } = require('./common');
 
 function renderHomePage(lang, texts) {
-    const countryOptions = countries
-        .map((country) => `<option value="${country.value}">${country.emoji} ${country.labels[lang] || country.labels.es}</option>`)
-        .join('');
+    const defaultCountry = countries[0] || { value: 'COL', emoji: '🇨🇷', labels: { es: 'Costa Rica (CRI)' } };
 
     return `
         <!DOCTYPE html>
@@ -181,23 +178,6 @@ function renderHomePage(lang, texts) {
                     box-shadow: 0 22px 44px rgba(47, 134, 255, 0.55);
                     filter: brightness(1.05);
                 }
-                .language-switcher .form-label {
-                    color: rgba(229, 236, 255, 0.8);
-                    font-weight: 500;
-                }
-                .language-switcher .language-select {
-                    background: rgba(11, 18, 54, 0.85);
-                    border: 1px solid rgba(114, 141, 255, 0.45);
-                    color: #f3f6ff;
-                    border-radius: 12px;
-                    padding-right: 2rem;
-                }
-                .language-switcher .language-select:focus {
-                    box-shadow: 0 0 0 0.2rem rgba(90, 109, 255, 0.25);
-                }
-                .language-switcher .language-select option {
-                    color: #101a40;
-                }
                 @media (max-width: 991.98px) {
                     .hero {
                         text-align: center;
@@ -207,10 +187,6 @@ function renderHomePage(lang, texts) {
                     .hero-description {
                         margin-left: auto;
                         margin-right: auto;
-                    }
-                    .language-switcher {
-                        text-align: left !important;
-                        margin-bottom: 2rem;
                     }
                 }
                 @media (max-width: 767.98px) {
@@ -228,7 +204,6 @@ function renderHomePage(lang, texts) {
         </head>
         <body>
             <div class="page-shell container">
-                ${renderLanguageSwitcher(lang, texts)}
                 <div class="row align-items-center justify-content-between g-5">
                     <div class="col-lg-6">
                         <div class="hero">
@@ -241,6 +216,8 @@ function renderHomePage(lang, texts) {
                     <div class="col-lg-5 ms-lg-auto">
                         <form action="/login" method="get" class="glass-card p-4 p-lg-5">
                             <input type="hidden" name="lang" value="${lang}">
+                            <input type="hidden" name="method" value="passport">
+                            <input type="hidden" name="country" value="${defaultCountry.value}">
                             <div class="mb-4">
                                 <label for="user" class="form-label">${texts.home.emailLabel}</label>
                                 <input type="email" id="user" name="user" class="form-control form-control-lg" placeholder="${texts.home.emailPlaceholder}" required>
@@ -250,33 +227,19 @@ function renderHomePage(lang, texts) {
                                 <p class="form-text method-hint mb-3">${texts.home.methodHint}</p>
                                 <div class="method-grid">
                                     <div class="method-option">
-                                        <input type="radio" class="method-radio" name="method" id="method-passport" value="passport" checked>
-                                        <label class="method-card" for="method-passport">
+                                        <div class="method-card">
                                             <span class="method-emoji">🛂</span>
                                             <span>
                                                 <span class="method-title">${texts.home.passportOption.replace('🛂', '').trim()}</span>
                                                 <p class="method-description">${texts.home.passportDescription}</p>
                                             </span>
-                                        </label>
-                                    </div>
-                                    <div class="method-option">
-                                        <input type="radio" class="method-radio" name="method" id="method-signature" value="firma-digital">
-                                        <label class="method-card" for="method-signature">
-                                            <span class="method-emoji">🔐</span>
-                                            <span>
-                                                <span class="method-title">${texts.home.signatureOption.replace('🔐', '').trim()}</span>
-                                                <p class="method-description">${texts.home.signatureDescription}</p>
-                                            </span>
-                                        </label>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                             <div class="mb-4">
-                                <label for="country" class="form-label">${texts.home.countryLabel}</label>
-                                <select id="country" name="country" class="form-select form-select-lg" required>
-                                    <option value="" disabled selected hidden>${texts.home.countryHint}</option>
-                                    ${countryOptions}
-                                </select>
+                                <span class="form-label d-block">${texts.home.countryLabel}</span>
+                                <p class="method-description mb-1">${defaultCountry.emoji} ${defaultCountry.labels.es}</p>
                                 <p class="helper-text">${texts.home.countryHint}</p>
                             </div>
                             <button type="submit" class="btn btn-primary w-100">${texts.home.continueButton}</button>

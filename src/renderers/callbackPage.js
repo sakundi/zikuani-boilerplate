@@ -1,7 +1,5 @@
-const { renderLanguageSwitcher } = require('./common');
-
 function renderCallbackSuccessPage(lang, texts, { expiresIn, tokenPayload, tokenRaw, proofPayload, proofRaw }) {
-    const homeUrl = `/?lang=${encodeURIComponent(lang)}`;
+    const homeUrl = '/';
     const copyPayloads = {
         token: tokenRaw || '',
         proof: proofRaw || ''
@@ -170,16 +168,9 @@ function renderCallbackSuccessPage(lang, texts, { expiresIn, tokenPayload, token
                     border-color: rgba(255, 255, 255, 0.4);
                     color: #ffffff;
                 }
-                .language-switcher .form-label {
-                    color: rgba(233, 237, 255, 0.78);
-                }
                 @media (max-width: 991.98px) {
                     .summary-card {
                         margin-bottom: 2.5rem;
-                    }
-                    .language-switcher {
-                        text-align: left !important;
-                        margin-bottom: 2rem;
                     }
                 }
                 @media (max-width: 767.98px) {
@@ -209,7 +200,6 @@ function renderCallbackSuccessPage(lang, texts, { expiresIn, tokenPayload, token
         </head>
         <body>
             <div class="page-shell container">
-                ${renderLanguageSwitcher(lang, texts, { allowChange: false })}
                 <div class="row align-items-stretch g-4">
                     <div class="col-lg-5">
                         <div class="summary-card h-100">
@@ -325,7 +315,7 @@ function renderCallbackSuccessPage(lang, texts, { expiresIn, tokenPayload, token
 }
 
 function renderCallbackErrorPage(lang, texts) {
-    const homeUrl = `/?lang=${encodeURIComponent(lang)}`;
+    const homeUrl = '/';
 
     return `
         <!DOCTYPE html>
@@ -401,13 +391,6 @@ function renderCallbackErrorPage(lang, texts) {
                     color: #fff;
                     border-color: rgba(255, 255, 255, 0.4);
                 }
-                .language-switcher .form-label {
-                    color: rgba(255, 236, 243, 0.75);
-                }
-                .language-switcher {
-                    max-width: 520px;
-                    margin: 0 auto 2rem;
-                }
                 @media (max-width: 575.98px) {
                     .error-card {
                         padding: 2.25rem 1.75rem;
@@ -417,7 +400,6 @@ function renderCallbackErrorPage(lang, texts) {
         </head>
         <body>
             <div class="page-shell container">
-                ${renderLanguageSwitcher(lang, texts, { allowChange: false })}
                 <div class="error-card">
                     <div class="error-icon">!</div>
                     <h1 class="error-title">${texts.callbackError.heading}</h1>

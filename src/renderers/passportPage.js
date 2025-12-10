@@ -1,5 +1,3 @@
-const { renderLanguageSwitcher } = require('./common');
-
 function renderPassportPage(lang, texts, { verificationLink, confirmUrl, checkUrl }) {
     const messages = {
         confirmPending: texts.passport.confirmPending,
@@ -134,28 +132,12 @@ function renderPassportPage(lang, texts, { verificationLink, confirmUrl, checkUr
                     cursor: progress;
                     box-shadow: none;
                 }
-                .language-switcher .form-label {
-                    color: rgba(226, 232, 255, 0.82);
-                }
-                .language-switcher .language-select {
-                    background: rgba(9, 18, 52, 0.88);
-                    border: 1px solid rgba(110, 141, 255, 0.4);
-                    color: #f6f8ff;
-                    border-radius: 12px;
-                }
-                .language-switcher .language-select option {
-                    color: #0d1737;
-                }
                 @media (max-width: 991.98px) {
                     .hero-title, .hero-subtitle, .hero-description {
                         text-align: center;
                     }
                     .app-link {
                         justify-content: center;
-                    }
-                    .language-switcher {
-                        text-align: left !important;
-                        margin-bottom: 2rem;
                     }
                 }
                 @media (max-width: 767.98px) {
@@ -177,7 +159,6 @@ function renderPassportPage(lang, texts, { verificationLink, confirmUrl, checkUr
         </head>
         <body>
             <div class="page-shell container">
-                ${renderLanguageSwitcher(lang, texts)}
                 <div class="row align-items-center justify-content-between g-5">
                     <div class="col-lg-6">
                         <div class="hero">
